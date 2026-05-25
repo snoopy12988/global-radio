@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://de1.api.radio-browser.info" crossorigin>
+<link rel="dns-prefetch" href="https://de1.api.radio-browser.info">
+<title>全球电台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fira+Code:wght@400;500&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="noise"></div>
+
+<div class="app-container">
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1 class="logo">全 球 电 台</h1>
+      <span class="logo-sub">GLOBAL RADIO</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-panel="nowplaying" id="nav-nowplaying">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+        </svg>
+        <span>正在播放</span>
+      </button>
+      <button class="nav-item" data-panel="discover">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        </svg>
+        <span>发现</span>
+      </button>
+      <button class="nav-item" data-panel="countries">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span>国家地区</span>
+      </button>
+      <button class="nav-item" data-panel="genres">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+        </svg>
+        <span>音乐流派</span>
+      </button>
+      <button class="nav-item" data-panel="search">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <span>搜索</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-divider"></div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" data-panel="favorites">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+        </svg>
+        <span>我的收藏</span>
+      </button>
+      <button class="nav-item" data-panel="history">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>最近播放</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="status-text" id="connection-status">已连接</span>
+      <span class="dead-count" id="dead-count" style="display:none; cursor:pointer;">
+        已隐藏 <strong id="dead-num">0</strong> 个失效台
+      </span>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <button class="global-back-btn" id="global-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <span>返回</span>
+    </button>
+    <!-- 正在播放面板 -->
+    <section class="panel active" id="panel-nowplaying">
+      <div class="nowplaying-container">
+        <div class="np-visualizer">
+          <div class="np-ripple" id="np-ripple-1"></div>
+          <div class="np-ripple" id="np-ripple-2"></div>
+          <div class="np-ripple" id="np-ripple-3"></div>
+          <div class="np-center">
+            <div class="np-art" id="np-art">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="np-info">
+          <h2 class="np-station-name" id="np-name">未选择电台</h2>
+          <p class="np-station-tags" id="np-tags"></p>
+          <p class="np-station-freq" id="np-freq"></p>
+        </div>
+        <div class="np-controls">
+          <button class="np-play-btn" id="np-play">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+        </div>
+        <div class="np-bars" id="np-bars">
+          <div class="np-bar"></div><div class="np-bar"></div><div class="np-bar"></div>
+          <div class="np-bar"></div><div class="np-bar"></div><div class="np-bar"></div>
+          <div class="np-bar"></div><div class="np-bar"></div><div class="np-bar"></div>
+          <div class="np-bar"></div><div class="np-bar"></div><div class="np-bar"></div>
+          <div class="np-bar"></div><div class="np-bar"></div><div class="np-bar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 发现面板 -->
+    <section class="panel active" id="panel-discover">
+      <div class="panel-header">
+        <h2 class="panel-title">发现电台</h2>
+        <p class="panel-desc">来自世界各地的高品质音乐电台</p>
+      </div>
+      <div class="station-grid" id="discover-stations">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <span>正在搜索全球电台...</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 国家面板 -->
+    <section class="panel" id="panel-countries">
+      <div class="panel-view" id="country-index">
+        <div class="panel-header">
+          <h2 class="panel-title">按国家浏览</h2>
+        </div>
+        <div class="country-grid" id="country-list">
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <span>加载国家列表...</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-view" id="country-detail" style="display:none;">
+        <div class="panel-header">
+          <h2 class="panel-title" id="country-detail-title"></h2>
+        </div>
+        <div class="station-grid" id="country-stations"></div>
+      </div>
+    </section>
+
+    <!-- 流派面板 -->
+    <section class="panel" id="panel-genres">
+      <div class="panel-view" id="genre-index">
+        <div class="panel-header">
+          <h2 class="panel-title">按流派浏览</h2>
+        </div>
+        <div class="tag-cloud" id="genre-list">
+          <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <span>加载流派列表...</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-view" id="genre-detail" style="display:none;">
+        <div class="panel-header">
+          <h2 class="panel-title" id="genre-detail-title"></h2>
+        </div>
+        <div class="station-grid" id="genre-stations"></div>
+      </div>
+    </section>
+
+    <!-- 搜索面板 -->
+    <section class="panel" id="panel-search">
+      <div class="panel-header">
+        <h2 class="panel-title">搜索电台</h2>
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input type="text" id="search-input" placeholder="输入电台名称或标签..." autocomplete="off">
+        </div>
+      </div>
+      <div class="station-grid" id="search-results">
+        <div class="empty-state">
+          <span>输入关键词开始搜索</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 收藏面板 -->
+    <section class="panel" id="panel-favorites">
+      <div class="panel-header">
+        <h2 class="panel-title">我的收藏</h2>
+      </div>
+      <div class="station-grid" id="favorites-list">
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+          </svg>
+          <span>还没有收藏电台</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 历史面板 -->
+    <section class="panel" id="panel-history">
+      <div class="panel-header">
+        <h2 class="panel-title">最近播放</h2>
+      </div>
+      <div class="station-grid" id="history-list">
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span>还没有播放记录</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 失效电台面板 -->
+    <section class="panel" id="panel-dead">
+      <div class="panel-header">
+        <h2 class="panel-title">失效电台</h2>
+        <p class="panel-desc">这些电台之前播放失败或已被手动隐藏</p>
+        <button class="back-btn" id="clear-all-dead" style="margin-top:12px;">恢复全部失效电台</button>
+      </div>
+      <div class="station-grid" id="dead-stations-list">
+        <div class="empty-state">
+          <span>暂无失效电台</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 播放栏 -->
+<div class="player-bar" id="player-bar">
+  <div class="player-info" id="player-info" style="cursor:default;">
+    <div class="player-art" id="player-art">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+      </svg>
+    </div>
+    <div class="player-meta">
+      <span class="player-station-name" id="player-name">未选择电台</span>
+      <span class="player-station-tags" id="player-tags"></span>
+    </div>
+  </div>
+
+  <div class="player-controls">
+    <button class="ctrl-btn" id="btn-play" disabled>
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="player-volume">
+    <svg class="vol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M15.54 8.46a5 5 0 010 7.07"/>
+      <path d="M19.07 4.93a10 10 0 010 14.14"/>
+    </svg>
+    <input type="range" class="vol-slider" id="vol-slider" min="0" max="100" value="75" orient="vertical">
+  </div>
+</div>
+
+<audio id="audio-player" preload="none"></audio>
+
+<script src="hls.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
