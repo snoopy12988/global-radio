@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, globalShortcut } = require('electron');
 const path = require('path');
 
 let mainWindow;
@@ -40,6 +40,13 @@ function createWindow() {
 
   mainWindow.webContents.on('did-fail-load', (event, code, desc) => {
     console.error('页面加载失败:', code, desc);
+  });
+
+  // Ctrl+Shift+I 打开开发者工具（排查网络错误用）
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.control && input.shift && input.key === 'I') {
+      mainWindow.webContents.toggleDevTools();
+    }
   });
 
   mainWindow.on('closed', () => {

@@ -4,6 +4,7 @@
    ============================================ */
 
 // ---- 配置 ----
+// Radio Browser 官方节点列表（DNS 查询 _api._tcp.radio-browser.info 可获取完整列表）
 const API_SERVERS = [
   'https://de1.api.radio-browser.info/json',
   'https://nl1.api.radio-browser.info/json',
@@ -451,8 +452,12 @@ async function apiFetch(endpoint) {
   let lastErr;
   for (let i = 0; i < API_SERVERS.length; i++) {
     const idx = (_apiServerIdx + i) % API_SERVERS.length;
+    const url = `${API_SERVERS[idx]}${endpoint}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000); // 8秒超时
     try {
-      const res = await fetch(`${API_SERVERS[idx]}${endpoint}`);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       _apiServerIdx = idx;
@@ -460,6 +465,8 @@ async function apiFetch(endpoint) {
       updateConnectionStatus(true, idx);
       return data;
     } catch (e) {
+      clearTimeout(timer);
+      console.warn(`[API] ${API_SERVERS[idx]} 失败:`, e.message);
       lastErr = e;
     }
   }
@@ -1044,7 +1051,8 @@ async function loadDiscover() {
     renderStations(dom.discoverStations, stations);
     updateAllCards();
   } catch (err) {
-    showError(dom.discoverStations, '加载失败，请检查网络连接', () => loadDiscover());
+    const msg = err?.name === 'AbortError' ? '连接超时，请检查网络' : `加载失败: ${err?.message || '网络错误'}`;
+    showError(dom.discoverStations, msg, () => loadDiscover());
   }
 }
 
