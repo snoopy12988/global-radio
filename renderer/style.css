@@ -285,13 +285,6 @@ html, body {
   50% { box-shadow: 0 0 60px rgba(164, 144, 194, 0.3); }
 }
 
-.np-art {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .np-art svg {
   width: 50px;
   height: 50px;
@@ -300,19 +293,6 @@ html, body {
 
 .np-art.playing svg {
   animation: npArtGlow 2s ease-in-out infinite;
-}
-
-.np-favicon {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  object-fit: contain;
-  background: rgba(43, 30, 62, 0.9);
-  border: 1px solid rgba(164, 144, 194, 0.2);
-  padding: 2px;
 }
 
 @keyframes npArtGlow {
@@ -377,36 +357,6 @@ html, body {
 .np-controls {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
-}
-
-.np-fav-btn {
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(164, 144, 194, 0.08);
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
-}
-
-.np-fav-btn:hover {
-  background: rgba(164, 144, 194, 0.15);
-  color: var(--accent);
-}
-
-.np-fav-btn.favorited {
-  color: #e06070;
-  filter: drop-shadow(0 0 6px rgba(224, 96, 112, 0.4));
-}
-
-.np-fav-btn svg {
-  width: 20px;
-  height: 20px;
 }
 
 .np-play-btn {
@@ -613,32 +563,15 @@ html, body {
   z-index: -1;
 }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-}
-
-.card-favicon {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  object-fit: contain;
-  flex-shrink: 0;
-  background: rgba(164, 144, 194, 0.08);
-}
-
 .card-name {
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: var(--space-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
-  min-width: 0;
 }
 
 .card-meta {
