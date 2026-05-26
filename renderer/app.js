@@ -4,7 +4,12 @@
    ============================================ */
 
 // ---- 配置 ----
-const API_BASE = 'https://de1.api.radio-browser.info/json';
+const API_SERVERS = [
+  'https://de1.api.radio-browser.info/json',
+  'https://nl1.api.radio-browser.info/json',
+  'https://at1.api.radio-browser.info/json'
+];
+let _apiServerIdx = 0;
 const STORAGE_KEYS = {
   favorites: 'global-radio-favorites',
   history: 'global-radio-history',
@@ -187,11 +192,87 @@ const TAG_ZH = {
   '1950': '50年代', '1960': '60年代', '1970': '70年代',
   '1980': '80年代', '1990': '90年代', '2000': '00年代',
   '2010': '10年代', '2020': '20年代',
-  'retro': '复古', 'mainstream': '主流'
+  'retro': '复古', 'mainstream': '主流',
+  'urban': '都市', 'new wave': '新浪潮', 'world beat': '世界节拍',
+  'smooth': '轻柔', 'grunge': '垃圾摇滚', 'post-rock': '后摇滚',
+  'post rock': '后摇滚', 'shoegaze': '鞋凝', 'emo': '情绪摇滚',
+  'metalcore': '金属核', 'deathcore': '死亡核', 'black metal': '黑金属',
+  'death metal': '死亡金属', 'thrash metal': '鞭打金属',
+  'power metal': '力量金属', 'doom metal': '末日金属',
+  'nu-metal': '新金属', 'nu metal': '新金属',
+  'synthwave': '合成波', 'retrowave': '复古波',
+  'vaporwave': '蒸汽波', 'lo-fi': '低保真', 'lofi': '低保真',
+  'lo fi': '低保真', 'chillhop': '慵懒嘻哈', 'trip hop': '神游舞曲',
+  'trip-hop': '神游舞曲', 'jungle': '丛林', 'garage': '车库',
+  'uk garage': '英式车库', 'grime': '垃圾乐', 'drill': '钻孔',
+  'afrobeat': '非洲节拍', 'afrobeats': '非洲节拍',
+  'african': '非洲音乐', 'arabic music': '阿拉伯音乐',
+  'indian': '印度音乐', 'bollywood': '宝莱坞',
+  'classical music': '古典音乐', 'baroque': '巴洛克',
+  'opera': '歌剧', 'chamber music': '室内乐', 'orchestra': '管弦乐',
+  'symphony': '交响乐', 'piano music': '钢琴音乐',
+  'guitar music': '吉他音乐', 'jazz music': '爵士音乐',
+  'hits music': '热门音乐', 'pop hits': '流行热曲',
+  'adult hits': '成人热门', 'current hits': '当前热门',
+  'stations': '电台', 'music station': '音乐电台',
+  'broadcast': '广播', 'streaming': '流媒体',
+  'online radio': '网络电台', 'internet': '网络',
+  'spanish music': '西班牙语音乐', 'french music': '法语音乐',
+  'german music': '德语音乐', 'italian music': '意大利语音乐',
+  'portuguese music': '葡萄牙语音乐',
+  'sports radio': '体育广播', 'news radio': '新闻广播',
+  'talk show': '脱口秀', 'comedy': '喜剧',
+  'kids': '儿童', 'children': '儿童', 'family': '家庭',
+  'spa': '水疗', 'yoga': '瑜伽', 'nature': '自然',
+  'healing': '疗愈', 'focus': '专注', 'concentration': '专注',
+  'cafe': '咖啡馆', 'restaurant': '餐厅',
+  'trap': '陷阱音乐', 'mumble rap': '喃喃说唱',
+  'conscious rap': '意识说唱', 'gangsta rap': '匪帮说唱',
+  'gospel music': '福音音乐', 'spiritual': '灵修',
+  'praise and worship': '赞美与敬拜',
+  'banda sinaloense': '锡那罗亚班达', 'norteno': '北部音乐',
+  'musica nortena': '北部音乐', 'tejano': '德克萨斯墨西哥',
+  'mariachi': '墨西哥流浪乐队', 'huapango': '瓦潘戈',
+  'durango': '杜兰戈', 'sinaloense': '锡那罗亚',
+  'zydeco': '赛代科', 'cajun': '卡津',
+  'americana': '美国乡村', 'bluegrass': '蓝草',
+  'honky tonk': '乡村酒吧', 'outlaw country': '叛逆乡村',
+  'country music': '乡村音乐', 'country pop': '乡村流行',
+  'alt-country': '另类乡村',
+  'mpb': '巴西流行', 'axe': '阿谢', 'pagode': '帕戈吉',
+  'forro': '福霍', 'baiao': '拜昂', 'brega': '布雷加',
+  'sertanejo universitario': '大学塞尔塔内霍',
+  'k-drama': '韩剧', 'j-drama': '日剧', 'anime songs': '动漫歌曲',
+  'mandopop': '国语流行', 'cantopop': '粤语流行',
+  'taiwanese pop': '台湾流行',
+  'russian pop': '俄语流行', 'russian music': '俄语音乐',
+  'french pop': '法语流行', 'french radio': '法语电台',
+  'italian pop': '意大利语流行', 'german pop': '德语流行',
+  'polish pop': '波兰语流行', 'greek pop': '希腊语流行',
+  'turkish pop': '土耳其流行', 'arabic pop': '阿拉伯流行',
+  'persian': '波斯语', 'farsi': '波斯语',
+  'hindi': '印地语', 'punjabi': '旁遮普语',
+  'tamil': '泰米尔语', 'telugu': '泰卢固语',
+  'bengali': '孟加拉语', 'urdu': '乌尔都语',
+  'swahili': '斯瓦希里语', 'hausa': '豪萨语',
+  'amharic': '阿姆哈拉语'
 };
+
+// 修复 UTF-8 被当作 Latin-1 解码产生的乱码（如 mÃºsica → música）
+function fixEncoding(str) {
+  if (!str || !/[\x80-\xFF]/.test(str)) return str;
+  try {
+    const bytes = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i) & 0xFF;
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return str;
+  }
+}
 
 function tCountry(name) {
   if (!name) return '';
+  name = fixEncoding(name);
   // 精确匹配
   if (COUNTRY_ZH[name]) return COUNTRY_ZH[name];
   // trim 后再试
@@ -223,7 +304,7 @@ function tCountry(name) {
 
 function tTag(tag) {
   if (!tag) return '';
-  let cleaned = tag.trim();
+  let cleaned = fixEncoding(tag.trim());
   // 去掉前导 #
   if (cleaned.startsWith('#')) cleaned = cleaned.slice(1);
   const lower = cleaned.toLowerCase();
@@ -249,7 +330,7 @@ const state = {
     const raw = loadJSON(STORAGE_KEYS.deadStations, []);
     // 兼容旧格式（纯 uuid 数组）→ 新格式（对象数组）
     if (raw.length > 0 && typeof raw[0] === 'string') {
-      return raw.map(uuid => ({ stationuuid: uuid, name: '', country: '', tags: '', deadAt: 0 }));
+      return raw.map(uuid => ({ stationuuid: uuid, name: '', country: '', tags: '', url: '', url_resolved: '', deadAt: 0 }));
     }
     return raw;
   })(),
@@ -298,6 +379,7 @@ const dom = {
   npTags: $('#np-tags'),
   npFreq: $('#np-freq'),
   npPlay: $('#np-play'),
+  npFav: $('#np-fav'),
   npArt: $('#np-art'),
   npCenter: document.querySelector('.np-center'),
   npBars: $('#np-bars')
@@ -350,15 +432,39 @@ function setCache(key, data) {
 }
 
 // ---- API 层 ----
+function updateConnectionStatus(online, serverIdx) {
+  const el = document.getElementById('connection-status');
+  if (!el) return;
+  if (online) {
+    el.textContent = `已连接 (${['DE','NL','AT'][serverIdx] || '?'})`;
+    el.style.color = '';
+  } else {
+    el.textContent = '无法连接';
+    el.style.color = '#c06050';
+  }
+}
+
 async function apiFetch(endpoint) {
   const cached = getCached(endpoint);
   if (cached) return cached;
-  const url = `${API_BASE}${endpoint}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`API ${res.status}`);
-  const data = await res.json();
-  setCache(endpoint, data);
-  return data;
+
+  let lastErr;
+  for (let i = 0; i < API_SERVERS.length; i++) {
+    const idx = (_apiServerIdx + i) % API_SERVERS.length;
+    try {
+      const res = await fetch(`${API_SERVERS[idx]}${endpoint}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      _apiServerIdx = idx;
+      setCache(endpoint, data);
+      updateConnectionStatus(true, idx);
+      return data;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  updateConnectionStatus(false, _apiServerIdx);
+  throw lastErr;
 }
 
 function apiDiscover() {
@@ -412,13 +518,21 @@ function isFavorited(uuid) {
 }
 
 // ---- 失效电台管理 ----
-function markStationDead(uuid, name, country, tags) {
+const DEAD_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24小时后自动复活
+
+function markStationDead(station) {
+  const uuid = station.stationuuid;
   if (state.deadStations.some(d => d.stationuuid === uuid)) return;
   state.deadStations.unshift({
     stationuuid: uuid,
-    name: name || '',
-    country: country || '',
-    tags: tags || '',
+    name: station.name || '',
+    country: station.country || '',
+    tags: station.tags || '',
+    url: station.url || '',
+    url_resolved: station.url_resolved || '',
+    bitrate: station.bitrate || 0,
+    favicon: station.favicon || '',
+    countrycode: station.countrycode || '',
     deadAt: Date.now()
   });
   if (state.deadStations.length > 500) state.deadStations = state.deadStations.slice(0, 300);
@@ -430,7 +544,14 @@ function markStationDead(uuid, name, country, tags) {
 }
 
 function isDead(uuid) {
-  return state.deadStations.some(d => d.stationuuid === uuid);
+  const entry = state.deadStations.find(d => d.stationuuid === uuid);
+  if (!entry) return false;
+  // 24小时后自动复活
+  if (Date.now() - entry.deadAt > DEAD_EXPIRY_MS) {
+    reviveStation(uuid);
+    return false;
+  }
+  return true;
 }
 
 function reviveStation(uuid) {
@@ -540,10 +661,9 @@ function onPlaySuccess(station) {
 }
 
 function playStation(station) {
-  const url = station.url_resolved || station.url;
-  if (!url) return;
+  const primary = station.url_resolved || station.url;
+  if (!primary) return;
 
-  // 先清理旧播放器
   destroyHLS();
   stopSpectrum();
 
@@ -551,11 +671,18 @@ function playStation(station) {
   state.isPlaying = true;
   state.stationSource = state.currentPanel;
 
-  // 检测 HLS (m3u8) 流
-  if (/\\.m3u8(\\?|$)/i.test(url) && window.Hls && Hls.isSupported()) {
+  // 当 url_resolved 和 url 不同时提供回退
+  const fallback = (station.url && station.url !== station.url_resolved) ? station.url : null;
+  attemptPlay(station, primary, fallback);
+}
+
+function attemptPlay(station, url, fallbackUrl) {
+  if (/\.m3u8(\?|$)/i.test(url) && window.Hls && Hls.isSupported()) {
     hls = new Hls({
-      manifestLoadTimeOut: 8000,
-      manifestLoadMaxRetry: 1
+      xhrSetup: function(xhr) {
+        xhr.withCredentials = false;
+        xhr.timeout = 8000;
+      }
     });
     hls.loadSource(url);
     hls.attachMedia(dom.audio);
@@ -566,9 +693,15 @@ function playStation(station) {
         onPlaySuccess(station);
       }).catch(err => {
         console.warn('HLS 播放失败:', err.message);
-        state.isPlaying = false;
-        markStationDead(station.stationuuid, station.name, station.country, station.tags);
-        updatePlayerUI();
+        destroyHLS();
+        if (fallbackUrl) {
+          console.log('尝试备用地址...');
+          attemptPlay(station, fallbackUrl, null);
+        } else {
+          state.isPlaying = false;
+          markStationDead(station);
+          updatePlayerUI();
+        }
       });
     });
     hls.on(Hls.Events.ERROR, (event, data) => {
@@ -576,10 +709,16 @@ function playStation(station) {
         console.warn('HLS 错误:', data.type, data.details);
         destroyHLS();
         stopSpectrum();
-        state.isPlaying = false;
-        state.playingStation = null;
-        markStationDead(station.stationuuid, station.name, station.country, station.tags);
-        updatePlayerUI();
+        if (fallbackUrl) {
+          console.log('HLS 失败，尝试备用地址...');
+          attemptPlay(station, fallbackUrl, null);
+        } else {
+          dom.playerTags.textContent = `播放失败: ${data.type}`;
+          state.isPlaying = false;
+          state.playingStation = null;
+          markStationDead(station);
+          updatePlayerUI();
+        }
       }
     });
   } else {
@@ -590,9 +729,16 @@ function playStation(station) {
       onPlaySuccess(station);
     }).catch(err => {
       console.warn('播放失败:', err.message);
-      state.isPlaying = false;
-      markStationDead(station.stationuuid, station.name, station.country, station.tags);
-      updatePlayerUI();
+      if (fallbackUrl) {
+        console.log('主地址失败，尝试备用地址...');
+        dom.audio.src = '';
+        attemptPlay(station, fallbackUrl, null);
+      } else {
+        dom.playerTags.textContent = `播放失败: ${err.message}`;
+        state.isPlaying = false;
+        markStationDead(station);
+        updatePlayerUI();
+      }
     });
   }
 }
@@ -670,6 +816,23 @@ function updateNowPlaying() {
     dom.npPlay.disabled = false;
     dom.npCenter.classList.toggle('pulse', state.isPlaying);
     dom.npArt.classList.toggle('playing', state.isPlaying);
+    // 显示电台 favicon
+    if (st.favicon) {
+      const existing = dom.npArt.querySelector('img.np-favicon');
+      if (!existing) {
+        const img = document.createElement('img');
+        img.className = 'np-favicon';
+        img.src = st.favicon;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.onerror = () => img.remove();
+        dom.npArt.appendChild(img);
+      } else if (existing.src !== st.favicon) {
+        existing.src = st.favicon;
+      }
+    } else {
+      dom.npArt.querySelector('img.np-favicon')?.remove();
+    }
   } else {
     dom.npName.textContent = '未选择电台';
     dom.npTags.textContent = '';
@@ -677,13 +840,20 @@ function updateNowPlaying() {
     dom.npPlay.disabled = true;
     dom.npCenter.classList.remove('pulse');
     dom.npArt.classList.remove('playing');
+    dom.npArt.querySelector('img.np-favicon')?.remove();
   }
 
   dom.npPlay.classList.toggle('playing', state.isPlaying);
-  const icon = state.isPlaying
+  const pIcon = state.isPlaying
     ? '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
     : '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
-  dom.npPlay.innerHTML = icon;
+  dom.npPlay.innerHTML = pIcon;
+
+  // 收藏状态
+  const faved = st ? isFavorited(st.stationuuid) : false;
+  dom.npFav.classList.toggle('favorited', faved);
+  dom.npFav.querySelector('svg').setAttribute('fill', faved ? 'currentColor' : 'none');
+  dom.npFav.disabled = !st;
 
   // 频谱条动画开关
   // 由 Web Audio API 实时驱动
@@ -715,11 +885,18 @@ function createStationCard(station) {
   const countryText = tCountry(station.country) || '';
   const favClass = isFavorited(station.stationuuid) ? 'favorited' : '';
 
+  const faviconHtml = station.favicon
+    ? `<img class="card-favicon" src="${station.favicon}" alt="" loading="lazy" onerror="this.style.display='none'">`
+    : '';
+
   card.innerHTML = `
     <button class="card-dismiss" title="隐藏此电台">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
-    <div class="card-name" title="${name}">${name}</div>
+    <div class="card-header">
+      ${faviconHtml}
+      <div class="card-name" title="${name}">${name}</div>
+    </div>
     <div class="card-meta">
       ${tags}
       ${countryText ? `<span class="card-country">${countryText}</span>` : ''}
@@ -742,7 +919,7 @@ function createStationCard(station) {
   // 隐藏按钮
   card.querySelector('.card-dismiss').addEventListener('click', (e) => {
     e.stopPropagation();
-    markStationDead(station.stationuuid, station.name, station.country, station.tags);
+    markStationDead(station);
   });
 
   const favBtn = card.querySelector('.card-fav');
@@ -868,7 +1045,6 @@ async function loadDiscover() {
     updateAllCards();
   } catch (err) {
     showError(dom.discoverStations, '加载失败，请检查网络连接', () => loadDiscover());
-    dom.connectionStatus.textContent = '离线';
   }
 }
 
@@ -1016,13 +1192,24 @@ function loadDeadStationList() {
   renderStations(dom.deadStationsList, list, true);
   dom.deadStationsList.querySelectorAll('.station-card').forEach(card => {
     card.querySelector('.card-fav')?.remove();
-    // 隐藏右上角的 ×（失效列表里不需要再隐藏）
     const dismissBtn = card.querySelector('.card-dismiss');
     if (dismissBtn) dismissBtn.remove();
-    // 左上角加恢复按钮
+
+    // 点击卡片主体：先解除死亡标记再播放
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.card-restore')) return;
+      const uuid = card.dataset.uuid;
+      const deadEntry = state.deadStations.find(d => d.stationuuid === uuid);
+      if (deadEntry && (deadEntry.url || deadEntry.url_resolved)) {
+        reviveStation(uuid);
+        playStation(deadEntry);
+      }
+    }, true); // capture 阶段，覆盖 createStationCard 里的 listener
+
+    // 左上角加恢复按钮（仅恢复，不播放）
     const restoreBtn = document.createElement('button');
     restoreBtn.className = 'card-restore';
-    restoreBtn.title = '恢复此电台';
+    restoreBtn.title = '恢复此电台（不播放）';
     restoreBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>';
     restoreBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1117,6 +1304,13 @@ function bindEvents() {
   dom.btnPlay.addEventListener('click', togglePlay);
   dom.npPlay.addEventListener('click', togglePlay);
 
+  // 正在播放页收藏按钮
+  dom.npFav.addEventListener('click', () => {
+    if (!state.playingStation) return;
+    toggleFavorite(state.playingStation);
+    updateNowPlaying();
+  });
+
   // 第一次用户交互时初始化音频上下文
   document.addEventListener('click', function initAC() {
     initAudioContext();
@@ -1184,3 +1378,4 @@ async function init() {
 }
 
 init();
+
