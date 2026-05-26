@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, globalShortcut } = require('electron');
+const { app, BrowserWindow, Menu, globalShortcut, ipcMain, net } = require('electron');
 const path = require('path');
 
 let mainWindow;
@@ -53,6 +53,38 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+// 主进程代理 API 请求（绕过渲染进程网络限制）
+ipcMain.handle('net-fetch', (event, url) => {
+  return new Promise((resolve, reject) => {
+    const request = net.request({
+      url,
+      method: 'GET',
+      session: require('electron').session.defaultSession
+    });
+    let body = '';
+    const timeout = setTimeout(() => {
+      request.abort();
+      reject(new Error('timeout'));
+    }, 10000);
+    request.on('response', (response) => {
+      if (response.statusCode !== 200) {
+        clearTimeout(timeout);
+        reject(new Error(`HTTP ${response.statusCode}`));
+        return;
+      }
+      response.on('data', (chunk) => { body += chunk.toString(); });
+      response.on('end', () => {
+        clearTimeout(timeout);
+        try { resolve(JSON.parse(body)); }
+        catch (e) { reject(new Error('JSON parse error')); }
+      });
+      response.on('error', (e) => { clearTimeout(timeout); reject(e); });
+    });
+    request.on('error', (e) => { clearTimeout(timeout); reject(e); });
+    request.end();
+  });
+});
 
 app.whenReady().then(() => {
   createMenu();

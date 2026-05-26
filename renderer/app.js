@@ -445,16 +445,32 @@ function updateConnectionStatus(online, serverIdx) {
   }
 }
 
+// 用主进程 net 模块请求（第二道防线）
+async function netFetch(url) {
+  if (!window.electronAPI?.netFetch) throw new Error('no IPC');
+  return window.electronAPI.netFetch(url);
+}
+
+// 获取端点对应的离线备用数据
+function getFallback(endpoint) {
+  if (endpoint.startsWith('/stations/topvote')) return FALLBACK.discover;
+  if (endpoint.startsWith('/countries')) return FALLBACK.countries;
+  if (endpoint.startsWith('/tags')) return FALLBACK.tags;
+  return null;
+}
+
 async function apiFetch(endpoint) {
   const cached = getCached(endpoint);
   if (cached) return cached;
 
   let lastErr;
+
+  // 第一道：渲染进程 fetch（最快）
   for (let i = 0; i < API_SERVERS.length; i++) {
     const idx = (_apiServerIdx + i) % API_SERVERS.length;
     const url = `${API_SERVERS[idx]}${endpoint}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000); // 8秒超时
+    const timer = setTimeout(() => controller.abort(), 8000);
     try {
       const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timer);
@@ -466,10 +482,36 @@ async function apiFetch(endpoint) {
       return data;
     } catch (e) {
       clearTimeout(timer);
-      console.warn(`[API] ${API_SERVERS[idx]} 失败:`, e.message);
+      console.warn(`[fetch] ${API_SERVERS[idx]} 失败:`, e.message);
       lastErr = e;
     }
   }
+
+  // 第二道：主进程 net 模块（绕过渲染进程网络限制）
+  for (let i = 0; i < API_SERVERS.length; i++) {
+    const idx = (_apiServerIdx + i) % API_SERVERS.length;
+    const url = `${API_SERVERS[idx]}${endpoint}`;
+    try {
+      const data = await netFetch(url);
+      _apiServerIdx = idx;
+      setCache(endpoint, data);
+      updateConnectionStatus(true, idx);
+      console.log(`[net] 通过主进程成功: ${API_SERVERS[idx]}`);
+      return data;
+    } catch (e) {
+      console.warn(`[net] ${API_SERVERS[idx]} 失败:`, e.message);
+      lastErr = e;
+    }
+  }
+
+  // 第三道：离线备用数据
+  const fallback = getFallback(endpoint);
+  if (fallback) {
+    console.info('[fallback] API 不可达，使用内置备用数据');
+    updateConnectionStatus(false, _apiServerIdx);
+    return fallback;
+  }
+
   updateConnectionStatus(false, _apiServerIdx);
   throw lastErr;
 }
@@ -1093,7 +1135,7 @@ async function loadCountryStations(country, zhName) {
     renderStations(dom.countryStations, stations);
     updateAllCards();
   } catch (err) {
-    showError(dom.countryStations, '加载失败', () => loadCountryStations(country, zhName));
+    showError(dom.countryStations, '网络不可达，请稍后重试', () => loadCountryStations(country, zhName));
   }
 }
 
