@@ -354,11 +354,17 @@ async function apiFetch(endpoint) {
   const cached = getCached(endpoint);
   if (cached) return cached;
   const url = `${API_BASE}${endpoint}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`API ${res.status}`);
-  const data = await res.json();
-  setCache(endpoint, data);
-  return data;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const data = await res.json();
+    setCache(endpoint, data);
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function apiDiscover() {
@@ -552,7 +558,7 @@ function playStation(station) {
   state.stationSource = state.currentPanel;
 
   // 检测 HLS (m3u8) 流
-  if (/\\.m3u8(\\?|$)/i.test(url) && window.Hls && Hls.isSupported()) {
+  if (/\.m3u8(\?|$)/i.test(url) && window.Hls && Hls.isSupported()) {
     hls = new Hls({
       manifestLoadTimeOut: 8000,
       manifestLoadMaxRetry: 1
